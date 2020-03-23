@@ -1,5 +1,5 @@
 
-////用于debug，打印日志信息
+//for debug
 let DEBUG=true;
 let printer=require('./printer.js');
 printer.resetDst('127.0.0.1',20130,20);
