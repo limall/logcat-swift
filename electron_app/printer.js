@@ -1,3 +1,4 @@
+//该文件是logcat客户端的node.js实现，在这里作为调试打印端的log工具
 let dgram = require('dgram');
 
 var udpLog={
