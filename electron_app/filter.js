@@ -1,9 +1,11 @@
-let DEBUG=false;
-let udpLog=require('./udpLog.js');
-udpLog.resetDst('127.0.0.1',20131,20);
+
+////用于debug，打印日志信息
+let DEBUG=true;
+let printer=require('./printer.js');
+printer.resetDst('127.0.0.1',20130,20);
 function log(msg){
     if(DEBUG)
-        udpLog.si(msg);
+        printer.si(msg);
 }
 
 module.exports.filter=function(srcs,filters){

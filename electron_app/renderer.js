@@ -1,12 +1,14 @@
 // This file is required by the index.html file and will
 // be executed in the renderer process for that window.
 // All of the Node.js APIs are available in this process.
-let DEBUG=false;
-let udpLog=require('./udpLog.js');
-udpLog.resetDst('127.0.0.1',20130,20);
+
+//用于debug，打印日志信息
+let DEBUG=true;
+let printer=require('./printer.js');
+printer.resetDst('127.0.0.1',20130,20);
 function log(msg){
     if(DEBUG)
-        udpLog.si(msg);
+        printer.si(msg);
 }
 
 let MASTHEAD_HEADOFLOG = 0;
