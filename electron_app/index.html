@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+  <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+  <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+  <!-- 可选的 Bootstrap 主题文件（一般不用引入） -->
+  <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+
+  <script src="./jquery-3.2.1.js"></script>
+  <script>if (typeof module === 'object') {window.jQuery = window.$ = module.exports;};</script>
+  <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+  <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+    <style> 
+        p{ margin:0 auto} 
+        body { padding-top: 70px;background-color:black;color:gray;}
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+      &nbsp
+      <div class="row">
+        <div class="col-md-1">&nbsp&nbsp&nbsp<a class="btn btn-warning" id="clear">&nbsp&nbspClear&nbsp&nbsp</a></div>
+        <div class="col-md-1">
+            <div class="btn-group">
+                <button id="level" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Level:i&nbsp&nbsp
+                  <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a id="i">i</a></li>
+                  <li role="separator" class="divider"></li>
+                  <li><a id="d">d</a></li>
+                  <li role="separator" class="divider"></li>
+                  <li><a id="w">w</a></li>
+                  <li role="separator" class="divider"></li>
+                  <li><a id="e">e</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-2">
+          <form class="form-horizontal">
+              <div class="form-group">
+                  <label for="tag" class="col-sm-1 control-label">Tag:</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="tag" placeholder="tag">
+                  </div>
+              </div>
+          </form>
+        </div>
+        <div class="col-md-2">
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label for="logid" class="col-sm-2 control-label">Logid:</label>
+                    <div class="col-sm-10">
+                      <input type="text" class="form-control" id="logid" placeholder="logid">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="col-md-2">
+            <form class="form-horizontal">
+                <div class="form-group">
+                    <label for="search" class="col-sm-3 control-label">Search:</label>
+                    <div class="col-sm-9">
+                      <input type="text" class="form-control" id="search" placeholder="key">
+                    </div>
+                </div>
+            </form>
+        </div>
+      </div>
+    </nav>
+    <!-- All of the Node.js APIs are available in this renderer process. -->
+    <table class="table table-bordered table-condensed" style="word-break:break-all; word-wrap:break-all;">
+      <thead>
+        <tr>
+          <th>时间</th>
+          <th>等级</th>
+          <th>标签</th>
+          <th>内容</th>
+        </tr>
+      </thead>
+      <tbody id="log">
+      </tbody> 
+    </table>
+  </body>
+
+  <script>
+    // You can also require other files to run in this process
+    require('./renderer.js')
+  </script>
+</html>
