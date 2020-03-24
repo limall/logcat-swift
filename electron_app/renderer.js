@@ -3,7 +3,7 @@
 // All of the Node.js APIs are available in this process.
 
 //for debug
-let DEBUG=true;
+let DEBUG=false;
 let printer=require('./printer.js');
 printer.resetDst('127.0.0.1',20130,20);
 function log(msg){
