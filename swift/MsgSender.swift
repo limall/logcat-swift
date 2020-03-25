@@ -74,20 +74,17 @@ public class UdpLog{
     }
     
     //send a block of one log message
+//block前8位为是否是开头，接下来就是32位logid,接下来是32位id，接下来是16位总长度，接下来是8位order，接下来是128byte的数据。
     private static func sendBlock(block:Data,isBegin:Bool,id:UInt32,totoalLength:UInt16,order:UInt8){
         //add head description
         var buffer=Data(count: 12)
         buffer[0] = isBegin ? 0 : 1
         let mask:UInt32=0xff
-        var i=0;
-        while i<4 {
+        for i in 0..<4{
             buffer[i+1]=UInt8(UInt32(logId>>(8*(4-i-1)))&mask)
-            i+=1
         }
-        i=0
-        while i<4 {
+        for i in 0..<4{
             buffer[i+5]=UInt8(UInt32(id>>(8*(4-i-1)))&mask)
-            i+=1
         }
         buffer[9]=UInt8(totoalLength>>8)
         buffer[10]=UInt8(UInt32(totoalLength)&mask)

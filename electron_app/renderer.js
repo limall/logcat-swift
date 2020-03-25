@@ -24,6 +24,7 @@ var filters={};
 logSocket.bind(20131);
 
 logSocket.on('message', function(msg, rinfo){
+    log("msg:"+msg.length)
     var i=0;
     
     let masthead=msg[0];
@@ -34,6 +35,7 @@ logSocket.on('message', function(msg, rinfo){
     }
     
     if(masthead==MASTHEAD_RESETLOGID){
+        log("recieve message to reset logid:"+logid);
         if(loggers[logid]){
             delete loggers[logid];
             log("delete logid:"+logid);
@@ -53,9 +55,7 @@ logSocket.on('message', function(msg, rinfo){
 
     let order=msg[11];
 
-    var thissize=totalsize;
-    if(thissize>BLOCK_LEN)
-        thissize=BLOCK_LEN;
+    var thissize=msg.length-12;
 
     var block=new Buffer(thissize);
     for(var i=12;i<thissize+12;i++){
