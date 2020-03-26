@@ -15,6 +15,7 @@ public class UdpLog{
         case bodyOfLog=1
         case resetLogId=2
     }
+    //日志打印的去向，None不作任何操作，Udp发送至打印端，Local存储至本地数据库
     public enum OutputKind{
         case None
         case Udp
@@ -146,6 +147,7 @@ public class UdpLog{
     private static func saveMsg(msg:String){}
     
     //set where device send log to and init connection or reset connection
+    //logid用来分辨发送设备，当有多个设备发送信息时，记得要将这些设备设置不同的logid
     public static func resetDst(toIp ip:String,toPort port:UInt16,logId:UInt32){
         setDst(toIp: ip, toPort: port, logId: logId)
         

@@ -8,6 +8,7 @@ function log(msg){
         printer.si(msg);
 }
 
+//过滤logid和tag
 module.exports.filter=function(srcs,filters){
     var newArray=[];
     srcs.forEach(function(src){
@@ -22,6 +23,8 @@ module.exports.filter=function(srcs,filters){
     });
     return newArray;
 }
+
+//过滤level
 module.exports.filterLevel=function(srcs,level){
     var levelPower={
         i:1,
@@ -36,16 +39,18 @@ module.exports.filterLevel=function(srcs,level){
     });
     return newArray;
 }
-module.exports.filterMsg=function(srcs,str){
+
+//通过key过滤msg信息主体,并将key的位置标记到src中
+module.exports.filterMsg=function(srcs,key){
     var newArray=[];
     srcs.forEach(function(src){
-        let index=src.msg.indexOf(str);
+        let index=src.msg.indexOf(key);
         if(index<0){
             if(src.stress)
                 delete src.stress;
             return;
         }else{
-            src.stress={start:index,end:index+str.length};
+            src.stress={start:index,end:index+key.length};
             newArray.push(src);
         }  
     });
