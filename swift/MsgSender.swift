@@ -33,7 +33,7 @@ public class UdpLog{
     private static var connection:NWConnection?
     
     //create a global single id for one message
-    private static func getSingleId()->UInt32{
+    internal static func getSingleId()->UInt32{
         var toReturn:UInt32=0
         objc_sync_enter(toReturn)
         toReturn=_id
@@ -137,14 +137,35 @@ public class UdpLog{
         
     }
     
+    private struct Msg:Codable{
+        let msg:String
+        let tag:String
+        let level:String
+        let time:UInt
+    }
+    
     //encapsulation log message into a Json string
     private static func makeJsonStr(msg:String,tag:String,level:String,time:UInt)->String{
-        let     str="{\"msg\":\"\(msg)\",\"tag\":\"\(tag)\",\"level\":\"\(level)\",\"time\":\(time)}"
+        //let     str="{\"msg\":\"\(msg)\",\"tag\":\"\(tag)\",\"level\":\"\(level)\",\"time\":\(time)}"
+        let msgStruct=Msg(msg: msg, tag: tag, level: level, time: time)
+        let encoder=JSONEncoder()
+        var str=""
+        do{
+            let data = try encoder.encode(msgStruct)
+            if let _str=String(data: data, encoding: .utf8){
+                str=_str
+            }else{
+                print("Error occurs when get string from encode")
+            }
+        }catch{
+            print("Error occurs when encode msg,error:\(error)")
+        }
         return str
     }
     
     //not implement yet
-    private static func saveMsg(msg:String){}
+    private static func saveMsg(msg:String){
+    }
     
     //set where device send log to and init connection or reset connection
     //logid用来分辨发送设备，当有多个设备发送信息时，记得要将这些设备设置不同的logid
