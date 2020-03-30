@@ -22,6 +22,14 @@ public class UdpLog{
         case Local
     }
     
+    public enum OutputLevel:Int{
+        case information=0
+        case debug
+        case warning
+        case error
+    }
+    
+    private static var outputLevel=OutputLevel.information
     private static let BLOCK_LEN=128
     public static var outputKind=OutputKind.Udp
     private static var toHost:NWEndpoint.Host="127.0.0.1"
@@ -146,7 +154,6 @@ public class UdpLog{
     
     //encapsulation log message into a Json string
     private static func makeJsonStr(msg:String,tag:String,level:String,time:UInt)->String{
-        //let     str="{\"msg\":\"\(msg)\",\"tag\":\"\(tag)\",\"level\":\"\(level)\",\"time\":\(time)}"
         let msgStruct=Msg(msg: msg, tag: tag, level: level, time: time)
         let encoder=JSONEncoder()
         var str=""
@@ -155,16 +162,17 @@ public class UdpLog{
             if let _str=String(data: data, encoding: .utf8){
                 str=_str
             }else{
-                print("Error occurs when get string from encode")
+                print("logcat:Error occurs when get string from encode")
             }
         }catch{
-            print("Error occurs when encode msg,error:\(error)")
+            print("logcat:Error occurs when encode msg,error:\(error)")
         }
         return str
     }
     
     //not implement yet
     private static func saveMsg(msg:String){
+        LocalManager.singleInstance.addSaveCache(msg: msg)
     }
     
     //set where device send log to and init connection or reset connection
@@ -187,7 +195,7 @@ public class UdpLog{
     
     //send log message of level i
     public static func i(_ msg:String,tag:String=String(logId)){
-        if outputKind == .None{
+        if outputKind == .None||OutputLevel.information.rawValue<outputLevel.rawValue{
             return
         }else{
             let level="i"
@@ -204,7 +212,7 @@ public class UdpLog{
     
     //send log message of level d
     public static func d(_ msg:String,tag:String=String(logId)){
-        if outputKind == .None{
+        if outputKind == .None||OutputLevel.debug.rawValue<outputLevel.rawValue{
             return
         }else{
             let level="d"
@@ -221,7 +229,7 @@ public class UdpLog{
     
     //send log message of level w
     public static func w(_ msg:String,tag:String=String(logId)){
-        if outputKind == .None{
+        if outputKind == .None||OutputLevel.warning.rawValue<outputLevel.rawValue{
             return
         }else{
             let level="w"
@@ -251,5 +259,14 @@ public class UdpLog{
                 saveMsg(msg: msg)
             }
         }
+    }
+    
+    public static func setOutputLevel(level:OutputLevel){
+        outputLevel=level
+    }
+    
+    public static func startSaving(appName name:String,saveInterval time:TimeInterval=0.5){
+        outputKind = .Local
+        LocalManager.singleInstance.startSaving(appName: name, saveIterval: time)
     }
 }
