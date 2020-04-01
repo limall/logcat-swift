@@ -63,9 +63,8 @@ logSocket.on('message', function(msg, rinfo){
 
     var thissize=msg.length-12;
     var block=new Buffer(thissize);
-    for(var i=12;i<thissize+12;i++){
-        block[i-12]=msg[i];
-    }
+    for(var i=0;i<thissize;i++)
+        block[i]=msg[i+12]
     
     loggers[logid]=loggers[logid]||{};
     //当单个日志信息超过120byte时，发送端会把信息分拆后发送，所以这里需要使用OneLog对分拆的信息进行整合
