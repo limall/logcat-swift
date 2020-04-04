@@ -53,23 +53,21 @@ public class UdpLog{
     //init NWConnect to prepare for sending message
     private static func initConnection(){
         connection=NWConnection(host: toHost, port: toPort, using: .udp)
-        if let _connection=connection{
-            _connection.stateUpdateHandler = { (newState) in
-                switch (newState) {
-                    case .ready:
-                        debugPrint("logcat:NWConnection ready")
-                    case .setup:
-                        debugPrint("logcat:NWConnection setup")
-                    case .cancelled:
-                        debugPrint("logcat:NWConnection cancelled")
-                    case .preparing:
-                        debugPrint("logcat:NWConnection preparing")
-                    default:
-                        print("logcat:ERROR! State not defined!\n")
-                }
+        connection!.stateUpdateHandler = { (newState) in
+            switch (newState) {
+                case .ready:
+                    debugPrint("logcat:NWConnection ready")
+                case .setup:
+                    debugPrint("logcat:NWConnection setup")
+                case .cancelled:
+                    debugPrint("logcat:NWConnection cancelled")
+                case .preparing:
+                    debugPrint("logcat:NWConnection preparing")
+                default:
+                    print("logcat:ERROR! State not defined!\n")
             }
-            _connection.start(queue: .global())
         }
+        connection!.start(queue: .global())
     }
     
     //set where message will be sent and init NWConnection
@@ -172,7 +170,7 @@ public class UdpLog{
     
     //not implement yet
     private static func saveMsg(msg:String){
-        LocalManager.singleInstance.addSaveCache(msg: msg)
+        LocalSaver.singleInstance.addSaveCache(msg: msg)
     }
     
     //set where device send log to and init connection or reset connection
@@ -265,8 +263,8 @@ public class UdpLog{
         outputLevel=level
     }
     
-    public static func startSaving(appName name:String,saveInterval time:TimeInterval=0.5){
+    public static func setSave2Local(appName name:String,saveInterval time:TimeInterval=0.5){
         outputKind = .Local
-        LocalManager.singleInstance.startSaving(appName: name, saveIterval: time)
+        LocalSaver.singleInstance.startSaving(appName: name, saveIterval: time)
     }
 }

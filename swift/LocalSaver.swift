@@ -1,5 +1,5 @@
 //
-//  LocalManager.swift
+//  LocalSaver.swift
 //  Logcat_iosProj
 //
 //  Created by 左启凡 on 2020/3/28.
@@ -8,8 +8,8 @@
 
 import Foundation
 
-class LocalManager{
-    internal static let singleInstance=LocalManager()
+internal class LocalSaver{
+    internal static let singleInstance=LocalSaver()
     private init(){}
     
     private let fileManager=FileManager.default
@@ -28,7 +28,9 @@ class LocalManager{
     
 
     private func createLogHomeDirectory(appName name:String){
-        logHomeDirectory=NSHomeDirectory()+"/\(name)/logs"
+        //logHomeDirectory=NSHomeDirectory()+"/\(name)/logs"
+        let paths=NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.cachesDirectory, FileManager.SearchPathDomainMask.userDomainMask, true)
+        logHomeDirectory=paths[0]+"/logs"
         let exist=fileManager.fileExists(atPath: logHomeDirectory)
         if !exist {
             do{
@@ -101,10 +103,12 @@ class LocalManager{
     }
     
     //获取cache应该存入的文件名，如果文件不存在，则创建
+    //第一个文件名为0，第二个为1，以此类推
     private func getLogFilePath()->String{
         var path=logDirectory+"/\(previousFileId)"
         if previousFileFull{
             previousFileId += 1
+            previousFileFull=false
             path=logDirectory+"/\(previousFileId)"
             fileManager.createFile(atPath: path, contents: nil, attributes: nil)
         }
@@ -158,12 +162,15 @@ class LocalManager{
     internal func startSaving(appName name:String,saveIterval time:TimeInterval){
         createLogHomeDirectory(appName: name)
         createThisRunDirectory()
-        DispatchQueue.global().async {
+        /*DispatchQueue.global().async {
             self.saveTimer=Timer.scheduledTimer(withTimeInterval: time, repeats: true, block: {timer in
                 self.saveLogCache()
             })
             RunLoop.current.run()
-        }
+        }*/
+        self.saveTimer=Timer.scheduledTimer(withTimeInterval: time, repeats: true, block: {timer in
+            self.saveLogCache()
+        })
     }
     
     internal func addSaveCache(msg:String){
