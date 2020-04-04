@@ -38,44 +38,6 @@ public class LocalSender{
         localHomeDirectory=paths[0]+"/logs"
     }
     
-    
-    //单位：bytes
-    private func getFileSize(path url:String)->UInt64?{
-        var fileSize:UInt64?=nil
-        do{
-            let attr=try FileManager.default.attributesOfItem(atPath: url)
-            fileSize=attr[FileAttributeKey.size] as? UInt64
-        }catch{
-            print("logcat:error occurs when getting file size,becuase of getting attribute of item from path:\(url) failure,error:\(error)")
-        }
-        return fileSize
-    }
-    
-    private func getFiles2Send(){
-        let fileManager=FileManager.default
-        folderLoop:for i in 0...10000000{
-            let folderPath=localHomeDirectory+"/\(i)"
-            let exist=fileManager.fileExists(atPath: folderPath)
-            if !exist {
-                break folderLoop
-            }else{
-                fileLoop:for j in 0...10000000000{
-                    let filePath="\(localHomeDirectory)/\(i)/\(j)"
-                    let exist=fileManager.fileExists(atPath: filePath)
-                    if exist{
-                        if let fileSize=getFileSize(path: filePath){
-                            if fileSize>0{
-                                debugPrint("find file:\(i)/\(j)")
-                            }
-                        }
-                    }else{
-                        break fileLoop
-                    }
-                }
-            }
-        }
-    }
-    
     //发送文件数据块
     private func sendBlock(block:Data){
         var data=Data(count: 12)
@@ -128,7 +90,6 @@ public class LocalSender{
     
     //开始发送指定的日志文件（发送时将文件分拆后存入发送队列）
     public func startSendingFile(holderId:Int,fileId:Int,completeCallback:@escaping()->Void){
-        getFiles2Send()
         sendingFileHolderId=holderId
         sendingFileId=fileId
         let path="\(localHomeDirectory)/\(holderId)/\(fileId)"
