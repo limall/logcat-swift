@@ -173,14 +173,13 @@ public class UdpLog{
     
     //send log message of level i
     public static func i(_ msg:String,tag:String=String(logId)){
-        dispatchQueue.async {
-            if outputKind == .None||OutputLevel.information.rawValue<outputLevel.rawValue{
-                return
-            }else{
-                let level="i"
-                let t=time(nil)
+        if outputKind == .None||OutputLevel.information.rawValue<outputLevel.rawValue{
+            return
+        }else{
+            let level="i"
+            let t=time(nil)
+            dispatchQueue.async {
                 let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
-                
                 if outputKind == .Udp{
                     sendMsg(msg: msg)
                 }else{
@@ -192,14 +191,13 @@ public class UdpLog{
     
     //send log message of level d
     public static func d(_ msg:String,tag:String=String(logId)){
-        dispatchQueue.async {
-            if outputKind == .None||OutputLevel.debug.rawValue<outputLevel.rawValue{
-                return
-            }else{
-                let level="d"
-                let t=time(nil)
+        if outputKind == .None||OutputLevel.debug.rawValue<outputLevel.rawValue{
+            return
+        }else{
+            let level="d"
+            let t=time(nil)
+            dispatchQueue.async {
                 let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
-                
                 if outputKind == .Udp{
                     sendMsg(msg: msg)
                 }else{
@@ -211,14 +209,13 @@ public class UdpLog{
     
     //send log message of level w
     public static func w(_ msg:String,tag:String=String(logId)){
-        dispatchQueue.async {
-            if outputKind == .None||OutputLevel.warning.rawValue<outputLevel.rawValue{
-                return
-            }else{
-                let level="w"
-                let t=time(nil)
+        if outputKind == .None||OutputLevel.warning.rawValue<outputLevel.rawValue{
+            return
+        }else{
+            let level="w"
+            let t=time(nil)
+            dispatchQueue.async {
                 let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
-                
                 if outputKind == .Udp{
                     sendMsg(msg: msg)
                 }else{
@@ -230,14 +227,13 @@ public class UdpLog{
     
     //send log message of level e
     public static func e(_ msg:String,tag:String=String(logId)){
-        dispatchQueue.async {
-            if outputKind == .None{
-                return
-            }else{
-                let level="e"
-                let t=time(nil)
+        if outputKind == .None{
+            return
+        }else{
+            let level="e"
+            let t=time(nil)
+            dispatchQueue.async {
                 let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
-                
                 if outputKind == .Udp{
                     sendMsg(msg: msg)
                 }else{
