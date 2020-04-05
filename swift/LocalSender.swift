@@ -12,6 +12,11 @@ import Foundation
 import Network
 
 public class LocalSender{
+    private struct FileId{
+        let folderId:Int
+        let fileId:Int
+    }
+    
     //发送数据块的最大容量
     private let BLOCK_MAX_LEN=128
     private var localHomeDirectory:String=""
@@ -23,6 +28,7 @@ public class LocalSender{
     private var sendCache=[Data]()
     private var sendingFileHolderId=0
     private var sendingFileId=0
+    private var isSendingSingleFile=true
     
     init(toIP:NWEndpoint.Host,toPort:NWEndpoint.Port=11230,connectKey:Int=396792774,appName:String) {
         connection=NWConnection(host: toIP, port: toPort, using: .tcp)
@@ -79,7 +85,9 @@ public class LocalSender{
                     }else{
                         debugPrint("file:\(self.sendingFileHolderId)/\(self.sendingFileId):has been sent")
                         self.sendCache.removeAll()
-                        self.connection.cancel()
+                        if self.isSendingSingleFile{
+                            self.connection.cancel()
+                        }
                         self.fileSentCallback()
                     }
                 }
@@ -88,8 +96,47 @@ public class LocalSender{
         }
     }
     
+    //单位：bytes
+    private func getFileSize(path url:String)->UInt64?{
+        var fileSize:UInt64?=nil
+        do{
+            let attr=try FileManager.default.attributesOfItem(atPath: url)
+            fileSize=attr[FileAttributeKey.size] as? UInt64
+        }catch{
+            print("logcat:error occurs when getting file size,becuase of getting attribute of item from path:\(url) failure,error:\(error)")
+        }
+        return fileSize
+    }
+    
+    private func getFiles2Send()->[FileId]{
+        var fileIds=[FileId]()
+        do{
+            let folderNames=try FileManager.default.contentsOfDirectory(atPath: localHomeDirectory)
+            for folderName in folderNames{
+                let folderPath="\(localHomeDirectory)/\(folderName)"
+                let fileNames=try FileManager.default.contentsOfDirectory(atPath: folderPath)
+                for fileName in fileNames{
+                    let filePath="\(localHomeDirectory)/\(folderName)/\(fileName)"
+                    if let fileSize=getFileSize(path: filePath){
+                        if fileSize>0{
+                            let folderId=Int(folderName)
+                            let fileId=Int(fileName)
+                            debugPrint("logcat:local send:find log file:\(folderId!)/\(fileId!)")
+                            fileIds.append(FileId(folderId: folderId!, fileId: fileId!))
+                        }
+                    }else{
+                        print("logcat:local send:can not get file size of \(folderName)/\(fileName)")
+                    }
+                }
+            }
+        }catch{
+            print("logcat:local send:Error occurs when try get path of files to send,error:\(error)")
+        }
+        return fileIds
+    }
+    
     //开始发送指定的日志文件（发送时将文件分拆后存入发送队列）
-    public func startSendingFile(holderId:Int,fileId:Int,completeCallback:@escaping()->Void){
+    private func sendFile(holderId:Int,fileId:Int,completeCallback:@escaping()->Void){
         sendingFileHolderId=holderId
         sendingFileId=fileId
         let path="\(localHomeDirectory)/\(holderId)/\(fileId)"
@@ -116,6 +163,35 @@ public class LocalSender{
         }else{
             print("logcat:local sender:can not read file from:\(path)")
         }
+    }
+    
+    public func sendSingleFile(holderId:Int,fileId:Int,completeCallback:@escaping()->Void){
+        isSendingSingleFile=true
+        sendFile(holderId: holderId, fileId: fileId, completeCallback: completeCallback)
+    }
+    
+    public func sendAllFiles(completeCallback:@escaping()->Void){
+        isSendingSingleFile=false
+        let files2Send=getFiles2Send()
+        guard files2Send.count>0 else{
+            return
+        }
+        
+        var index=0
+        var oneFileSentCallback:(()->Void)?=nil
+        oneFileSentCallback={
+            debugPrint("logcat:local send:file:\(files2Send[index].folderId)/\(files2Send[index].fileId) has been sent")
+            
+            index += 1
+            if index<files2Send.count{
+                self.sendFile(holderId: files2Send[index].folderId, fileId: files2Send[index].fileId, completeCallback: oneFileSentCallback!)
+            }else{
+                debugPrint("logcat:local send:all file sent")
+                self.connection.cancel()
+                completeCallback()
+            }
+        }
+        sendFile(holderId: files2Send[index].folderId, fileId: files2Send[index].fileId, completeCallback: oneFileSentCallback!)
     }
     
     public func initConnection(readyCallback:@escaping ()->Void){

@@ -17,15 +17,12 @@ internal class LocalSaver{
     private var logDirectory=""
     //存放缓存的日志
     private var logCache=[String]()
-    private var saveTimer:Timer?=nil
     //上一次存储是否将文件存满了（超过1000字符）
     private var previousFileFull=true
     //上一次存储文件名所使用的id（id即为文件名）
     private var previousFileId = -1
-    //是否正在存储日志到文件，用来避免多线程冲突
-    private var isSaving=false
-
-    
+    //是否正在存储日志到文件，用来避免多线程冲突（在目前的实现里用不着，但最好还是留着，以后可能用到）
+    private var isSaving=false    
 
     private func createLogHomeDirectory(appName name:String){
         //logHomeDirectory=NSHomeDirectory()+"/\(name)/logs"
@@ -69,15 +66,15 @@ internal class LocalSaver{
                 print("logcat:Error occurs when creating one log directory,url:\(logDirectory),error:\(error)")
             }
         }catch{
-            print("logcat:Error occurs when try get contens of log home directory,error:\(error)")
+            print("logcat:Error occurs when try get contents of log home directory,error:\(error)")
         }
     }
     
     private func getAndClearSaveCache()->[String]{
-        objc_sync_enter(logCache)
+        objc_sync_enter(self)
         let msgs=logCache
         logCache.removeAll()
-        objc_sync_exit(logCache)
+        objc_sync_exit(self)
         return msgs
     }
     
@@ -112,6 +109,7 @@ internal class LocalSaver{
             path=logDirectory+"/\(previousFileId)"
             fileManager.createFile(atPath: path, contents: nil, attributes: nil)
         }
+        debugPrint("logcat:local save:saving file:\(previousFileId)")
         return path
     }
     
@@ -127,13 +125,13 @@ internal class LocalSaver{
     
     //将缓存的日志存到文件里，并清空日志
     private func saveLogCache(){
-        objc_sync_enter(isSaving)
+        objc_sync_enter(self)
         guard !isSaving else {
-            objc_sync_exit(isSaving)
+            objc_sync_exit(self)
             return
         }
         isSaving=true
-        objc_sync_exit(isSaving)
+        objc_sync_exit(self)
         
         let msgs=getAndClearSaveCache()
         guard !msgs.isEmpty else{
@@ -162,21 +160,18 @@ internal class LocalSaver{
     internal func startSaving(appName name:String,saveIterval time:TimeInterval){
         createLogHomeDirectory(appName: name)
         createThisRunDirectory()
-        /*DispatchQueue.global().async {
-            self.saveTimer=Timer.scheduledTimer(withTimeInterval: time, repeats: true, block: {timer in
+        DispatchQueue.global().async {
+            Timer.scheduledTimer(withTimeInterval: time, repeats: true, block: {timer in
                 self.saveLogCache()
             })
             RunLoop.current.run()
-        }*/
-        self.saveTimer=Timer.scheduledTimer(withTimeInterval: time, repeats: true, block: {timer in
-            self.saveLogCache()
-        })
+        }
     }
     
     internal func addSaveCache(msg:String){
-        objc_sync_enter(logCache)
+        objc_sync_enter(self)
         logCache.append(msg)
-        objc_sync_exit(logCache)
+        objc_sync_exit(self)
     }
 }
 

@@ -32,26 +32,25 @@ public class UdpLog{
     private static var outputLevel=OutputLevel.information
     private static let BLOCK_LEN=128
     public static var outputKind=OutputKind.Udp
-    private static var toHost:NWEndpoint.Host="127.0.0.1"
-    private static var toPort:NWEndpoint.Port=20131
     //identify a device which sends log message
     public static var logId:UInt32=0
     //identify one log message
     private static var _id:UInt32=0
     private static var connection:NWConnection?
+    private static var dispatchQueue=DispatchQueue(label: "com.logcat-swift")
     
     //create a global single id for one message
     internal static func getSingleId()->UInt32{
         var toReturn:UInt32=0
-        objc_sync_enter(toReturn)
+        objc_sync_enter(self)
         toReturn=_id
         _id += 1
-        objc_sync_exit(toReturn)
+        objc_sync_exit(self)
         return toReturn
     }
     
     //init NWConnect to prepare for sending message
-    private static func initConnection(){
+    private static func initConnection(toHost:NWEndpoint.Host,toPort:NWEndpoint.Port){
         connection=NWConnection(host: toHost, port: toPort, using: .udp)
         connection!.stateUpdateHandler = { (newState) in
             switch (newState) {
@@ -68,22 +67,6 @@ public class UdpLog{
             }
         }
         connection!.start(queue: .global())
-    }
-    
-    //set where message will be sent and init NWConnection
-    private static func setDst(toIp ip:String,toPort port:UInt16,logId:UInt32){
-        let _host=NWEndpoint.Host(ip)
-        let _port=NWEndpoint.Port(rawValue: port)
-        if let aPort=_port{
-            UdpLog.toPort=aPort
-        }else{
-            print("logcat:set toPort failure")
-            return
-        }
-        toHost=_host
-        UdpLog.logId=logId
-        
-        initConnection()
     }
     
     //send a block of one log message
@@ -105,15 +88,11 @@ public class UdpLog{
         
         buffer.append(block)
         
-        if let _connection=connection{
-            _connection.send(content: buffer, completion: NWConnection.SendCompletion.contentProcessed({(NWError)in
-                if NWError != nil{
-                    print("logcat:error:send block failure,id:\(id),order:\(order)")
-                }
-            }))
-        }else{
-            print("logcat:error:send block when connection is nil")
-        }
+        connection!.send(content: buffer, completion: NWConnection.SendCompletion.contentProcessed({(NWError)in
+            if NWError != nil{
+                print("logcat:error:send block failure,id:\(id),order:\(order)")
+            }
+        }))
     }
     
     //send one log message
@@ -175,9 +154,10 @@ public class UdpLog{
     
     //set where device send log to and init connection or reset connection
     //logid用来分辨发送设备，当有多个设备发送信息时，记得要将这些设备设置不同的logid
-    public static func resetDst(toIp ip:String,toPort port:UInt16,logId:UInt32){
-        setDst(toIp: ip, toPort: port, logId: logId)
-        
+    public static func resetDst(toIp ip:NWEndpoint.Host="127.0.0.1",toPort port:NWEndpoint.Port=20131,logId:UInt32){
+        UdpLog.logId=logId
+        initConnection(toHost: ip, toPort: port)
+
         var buf=Data(count: 5)
         buf[0]=UInt8(Masthead.resetLogId.rawValue)
         let mask=0xff
@@ -193,68 +173,76 @@ public class UdpLog{
     
     //send log message of level i
     public static func i(_ msg:String,tag:String=String(logId)){
-        if outputKind == .None||OutputLevel.information.rawValue<outputLevel.rawValue{
-            return
-        }else{
-            let level="i"
-            let t=time(nil)
-            let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
-            
-            if outputKind == .Udp{
-                sendMsg(msg: msg)
+        dispatchQueue.async {
+            if outputKind == .None||OutputLevel.information.rawValue<outputLevel.rawValue{
+                return
             }else{
-                saveMsg(msg: msg)
+                let level="i"
+                let t=time(nil)
+                let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
+                
+                if outputKind == .Udp{
+                    sendMsg(msg: msg)
+                }else{
+                    saveMsg(msg: msg)
+                }
             }
         }
     }
     
     //send log message of level d
     public static func d(_ msg:String,tag:String=String(logId)){
-        if outputKind == .None||OutputLevel.debug.rawValue<outputLevel.rawValue{
-            return
-        }else{
-            let level="d"
-            let t=time(nil)
-            let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
-            
-            if outputKind == .Udp{
-                sendMsg(msg: msg)
+        dispatchQueue.async {
+            if outputKind == .None||OutputLevel.debug.rawValue<outputLevel.rawValue{
+                return
             }else{
-                saveMsg(msg: msg)
+                let level="d"
+                let t=time(nil)
+                let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
+                
+                if outputKind == .Udp{
+                    sendMsg(msg: msg)
+                }else{
+                    saveMsg(msg: msg)
+                }
             }
         }
     }
     
     //send log message of level w
     public static func w(_ msg:String,tag:String=String(logId)){
-        if outputKind == .None||OutputLevel.warning.rawValue<outputLevel.rawValue{
-            return
-        }else{
-            let level="w"
-            let t=time(nil)
-            let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
-            
-            if outputKind == .Udp{
-                sendMsg(msg: msg)
+        dispatchQueue.async {
+            if outputKind == .None||OutputLevel.warning.rawValue<outputLevel.rawValue{
+                return
             }else{
-                saveMsg(msg: msg)
+                let level="w"
+                let t=time(nil)
+                let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
+                
+                if outputKind == .Udp{
+                    sendMsg(msg: msg)
+                }else{
+                    saveMsg(msg: msg)
+                }
             }
         }
     }
     
     //send log message of level e
     public static func e(_ msg:String,tag:String=String(logId)){
-        if outputKind == .None{
-            return
-        }else{
-            let level="e"
-            let t=time(nil)
-            let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
-            
-            if outputKind == .Udp{
-                sendMsg(msg: msg)
+        dispatchQueue.async {
+            if outputKind == .None{
+                return
             }else{
-                saveMsg(msg: msg)
+                let level="e"
+                let t=time(nil)
+                let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
+                
+                if outputKind == .Udp{
+                    sendMsg(msg: msg)
+                }else{
+                    saveMsg(msg: msg)
+                }
             }
         }
     }
