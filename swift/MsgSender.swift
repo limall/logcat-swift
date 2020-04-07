@@ -15,7 +15,7 @@ public class UdpLog{
         case bodyOfLog=1
         case resetLogId=2
     }
-    //日志打印的去向，None不作任何操作，Udp发送至打印端，Local存储至本地数据库
+    //日志打印的去向，None不作任何操作，Udp发送至打印端，Local存储至本地
     public enum OutputKind{
         case None
         case Udp
@@ -127,11 +127,12 @@ public class UdpLog{
         let tag:String
         let level:String
         let time:UInt
+        let place:String
     }
     
     //encapsulation log message into a Json string
-    private static func makeJsonStr(msg:String,tag:String,level:String,time:UInt)->String{
-        let msgStruct=Msg(msg: msg, tag: tag, level: level, time: time)
+    private static func makeJsonStr(msg:String,tag:String,level:String,time:UInt,place:String)->String{
+        let msgStruct=Msg(msg: msg, tag: tag, level: level, time: time,place:place)
         let encoder=JSONEncoder()
         var str=""
         do{
@@ -147,9 +148,30 @@ public class UdpLog{
         return str
     }
     
-    //not implement yet
     private static func saveMsg(msg:String){
         LocalSaver.singleInstance.addSaveCache(msg: msg)
+    }
+    
+    //从#file字符串找截取fileName
+    private static func getFileName(filePath:String)->String{
+        if let index=filePath.lastIndex(of: "/"){
+            let startIndex=filePath.index(index, offsetBy: 1)
+            let sub=filePath.suffix(from: startIndex)
+            let fileName=String(sub)
+            return fileName
+        }else{
+            return filePath
+        }
+    }
+    //从#function中截取functionName
+    private static func getFuncName(funcId:String)->String{
+        if let index=funcId.firstIndex(of: "("){
+            let sub=funcId.prefix(upTo: index)
+            let funcName=String(sub)+"()"
+            return funcName
+        }else{
+            return funcId
+        }
     }
     
     //set where device send log to and init connection or reset connection
@@ -171,73 +193,73 @@ public class UdpLog{
         }))
     }
     
+    //组织一条log信息
+    private static func proccessMsg(msg:String,level:String,tag:String,filePath:String,function:String,line:Int)->String{
+        let t=time(nil)
+        let place="\(getFileName(filePath: filePath)):\(getFuncName(funcId: function)):\(line)"
+        let msgStr=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t),place:place)
+        return msgStr
+    }
+    
     //send log message of level i
-    public static func i(_ msg:String,tag:String=String(logId)){
+    public static func i(_ msg:String,tag:String=String(logId),filePath:String=#file,function:String=#function,line:Int=#line){
         if outputKind == .None||OutputLevel.information.rawValue<outputLevel.rawValue{
             return
         }else{
-            let level="i"
-            let t=time(nil)
             dispatchQueue.async {
-                let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
+                let msgStr=proccessMsg(msg: msg, level: "i", tag: tag, filePath: filePath, function: function, line: line)
                 if outputKind == .Udp{
-                    sendMsg(msg: msg)
+                    sendMsg(msg: msgStr)
                 }else{
-                    saveMsg(msg: msg)
+                    saveMsg(msg: msgStr)
                 }
             }
         }
     }
     
     //send log message of level d
-    public static func d(_ msg:String,tag:String=String(logId)){
+    public static func d(_ msg:String,tag:String=String(logId),filePath:String=#file,function:String=#function,line:Int=#line){
         if outputKind == .None||OutputLevel.debug.rawValue<outputLevel.rawValue{
             return
         }else{
-            let level="d"
-            let t=time(nil)
             dispatchQueue.async {
-                let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
+                let msgStr=proccessMsg(msg: msg, level: "d", tag: tag, filePath: filePath, function: function, line: line)
                 if outputKind == .Udp{
-                    sendMsg(msg: msg)
+                    sendMsg(msg: msgStr)
                 }else{
-                    saveMsg(msg: msg)
+                    saveMsg(msg: msgStr)
                 }
             }
         }
     }
     
     //send log message of level w
-    public static func w(_ msg:String,tag:String=String(logId)){
+    public static func w(_ msg:String,tag:String=String(logId),filePath:String=#file,function:String=#function,line:Int=#line){
         if outputKind == .None||OutputLevel.warning.rawValue<outputLevel.rawValue{
             return
         }else{
-            let level="w"
-            let t=time(nil)
             dispatchQueue.async {
-                let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
+                let msgStr=proccessMsg(msg: msg, level: "w", tag: tag, filePath: filePath, function: function, line: line)
                 if outputKind == .Udp{
-                    sendMsg(msg: msg)
+                    sendMsg(msg: msgStr)
                 }else{
-                    saveMsg(msg: msg)
+                    saveMsg(msg: msgStr)
                 }
             }
         }
     }
     
     //send log message of level e
-    public static func e(_ msg:String,tag:String=String(logId)){
+    public static func e(_ msg:String,tag:String=String(logId),filePath:String=#file,function:String=#function,line:Int=#line){
         if outputKind == .None{
             return
         }else{
-            let level="e"
-            let t=time(nil)
             dispatchQueue.async {
-                let msg=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t))
+                let msgStr=proccessMsg(msg: msg, level: "e", tag: tag, filePath: filePath, function: function, line: line)
                 if outputKind == .Udp{
-                    sendMsg(msg: msg)
+                    sendMsg(msg: msgStr)
                 }else{
-                    saveMsg(msg: msg)
+                    saveMsg(msg: msgStr)
                 }
             }
         }

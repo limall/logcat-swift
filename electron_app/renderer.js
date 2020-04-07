@@ -167,8 +167,8 @@ function getHtmlStr(obj,level,stress){
 
     var str=HTML1;
     str+=HTMLA+ new Date(obj.time*1000).toLocaleString()+HTMLB;
-    str+=HTMLA+obj.level+HTMLB;
     str+=HTMLA+obj.tag+HTMLB;
+    str+=HTMLA+obj.place+HTMLB;
     //当在search输入框中输入key时，在打印的日志中红色显示搜索到的key
     if(stress){
         var a='';
