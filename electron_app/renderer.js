@@ -62,7 +62,7 @@ logSocket.on('message', function(msg, rinfo){
     let order=msg[11];
 
     var thissize=msg.length-12;
-    var block=new Buffer(thissize);
+    var block=Buffer.alloc(thissize);
     for(var i=0;i<thissize;i++)
         block[i]=msg[i+12]
     

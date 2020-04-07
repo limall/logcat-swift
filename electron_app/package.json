@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron ."
   },
-  "repository": "https://github.com/limall/logcat-swift",
+  "repository": "https://github.com/limall/logcat-swift.git",
   "keywords": [
     "logcat",
     "log",
@@ -15,6 +15,6 @@
   "author": "qifan zuo",
   "license": "MIT",
   "devDependencies": {
-    "electron": "~1.6.2"
+    "electron": "^8.2.0"
   }
 }
