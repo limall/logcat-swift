@@ -3,7 +3,8 @@ const electron = require('electron')
 const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
-
+const ipc=electron.ipcMain
+const dialog=electron.dialog
 const path = require('path')
 const url = require('url')
 
@@ -14,7 +15,7 @@ let mainWindow
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({
-    width: 1600, 
+    width: 1680, 
     height: 900,
     webPreferences:{
       nodeIntegration:true
@@ -37,6 +38,17 @@ function createWindow () {
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
     mainWindow = null
+  })
+
+  ipc.on('select-file',function(event){
+    dialog.showOpenDialog(mainWindow,{
+      properties:['openFile']
+    }).then(result =>{
+      if(!result.canceled)
+        event.reply('selected-file',result.filePaths)
+    }).catch(err =>{
+      console.log(err)
+    })
   })
 }
 

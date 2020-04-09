@@ -38,12 +38,31 @@ public class LocalSender{
         fileSentCallback={
             debugPrint("logcat:local sender:file sent")
         }
+        initConnection()
         getLocalHomeDirectory(appName: appName)
     }
     
     private func getLocalHomeDirectory(appName:String){
         let paths=NSSearchPathForDirectoriesInDomains(FileManager.SearchPathDirectory.cachesDirectory, FileManager.SearchPathDomainMask.userDomainMask, true)
         localHomeDirectory=paths[0]+"/logs"
+    }
+    
+    public func initConnection(){
+        connection.stateUpdateHandler = { (newState) in
+            switch (newState) {
+                case .ready:
+                    debugPrint("logcat:local sender:NWConnection ready")
+                case .setup:
+                    debugPrint("logcat:local sender:NWConnection setup")
+                case .cancelled:
+                    debugPrint("logcat:local sender:NWConnection cancelled")
+                case .preparing:
+                    debugPrint("logcat:local sender:NWConnection preparing")
+                default:
+                    print("logcat:local sender:ERROR! State not defined!\n")
+            }
+        }
+        connection.start(queue: .global())
     }
     
     //发送文件数据块
@@ -194,24 +213,5 @@ public class LocalSender{
             }
         }
         sendFile(holderId: files2Send[index].folderId, fileId: files2Send[index].fileId, completeCallback: oneFileSentCallback!)
-    }
-    
-    public func initConnection(readyCallback:@escaping ()->Void){
-        connection.stateUpdateHandler = { (newState) in
-            switch (newState) {
-                case .ready:
-                    debugPrint("logcat:local sender:NWConnection ready")
-                    readyCallback()
-                case .setup:
-                    debugPrint("logcat:local sender:NWConnection setup")
-                case .cancelled:
-                    debugPrint("logcat:local sender:NWConnection cancelled")
-                case .preparing:
-                    debugPrint("logcat:local sender:NWConnection preparing")
-                default:
-                    print("logcat:local sender:ERROR! State not defined!\n")
-            }
-        }
-        connection.start(queue: .global())
     }
 }

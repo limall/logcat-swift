@@ -8,7 +8,7 @@
 
 import Foundation
 
-extension UdpLog{
+extension Logcat{
 /*
     public static func iIntArray(_ array:[Int],tag:String=String(logId)){
         

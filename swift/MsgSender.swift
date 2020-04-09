@@ -9,7 +9,7 @@
 import Foundation
 import Network
 
-public class UdpLog{
+public class Logcat{
     private enum Masthead:Int {
         case headOfLog=0
         case bodyOfLog=1
@@ -51,7 +51,7 @@ public class UdpLog{
     
     //init NWConnect to prepare for sending message
     private static func initConnection(toHost:NWEndpoint.Host,toPort:NWEndpoint.Port){
-        connection=NWConnection(host: toHost, port: toPort, using: .udp)
+        connection=NWConnection(host: toHost, port: toPort, using: .tcp)
         connection!.stateUpdateHandler = { (newState) in
             switch (newState) {
                 case .ready:
@@ -69,7 +69,7 @@ public class UdpLog{
         connection!.start(queue: .global())
     }
     
-    //send a block of one log message
+    //send a block of one log message,固定总长度为140
 //block前8位为是否是开头，接下来就是32位logid,接下来是32位id，接下来是16位总长度，接下来是8位order，接下来是128byte的数据。
     private static func sendBlock(block:Data,isBegin:Bool,id:UInt32,totoalLength:UInt16,order:UInt8){
         //add head description
@@ -87,6 +87,11 @@ public class UdpLog{
         buffer[11]=order
         
         buffer.append(block)
+        
+        if block.count<BLOCK_LEN{
+            let tail=Data(count: BLOCK_LEN+12-buffer.count)
+            buffer.append(tail)
+        }
         
         connection!.send(content: buffer, completion: NWConnection.SendCompletion.contentProcessed({(NWError)in
             if NWError != nil{
@@ -177,10 +182,10 @@ public class UdpLog{
     //set where device send log to and init connection or reset connection
     //logid用来分辨发送设备，当有多个设备发送信息时，记得要将这些设备设置不同的logid
     public static func resetDst(toIp ip:NWEndpoint.Host="127.0.0.1",toPort port:NWEndpoint.Port=20131,logId:UInt32){
-        UdpLog.logId=logId
+        Logcat.logId=logId
         initConnection(toHost: ip, toPort: port)
 
-        var buf=Data(count: 5)
+        var buf=Data(count: 140)
         buf[0]=UInt8(Masthead.resetLogId.rawValue)
         let mask=0xff
         for i in 0..<4{
