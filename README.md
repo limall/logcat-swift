@@ -28,7 +28,7 @@ logcat-swift分为打印端和发送端两部分，打印端是一个单独的ap
 
 #### 使用已打包好了的app
 
-打印端可以直接使用打包好了的app，链接: https://pan.baidu.com/s/1EvnKSSfvMFrzyyf2Re3LgA  密码: 0d2g
+打印端可以直接使用打包好了的app,链接: https://pan.baidu.com/s/1Sl6XUkuzucoYkmcATucJrA 提取码: 6vks
 
 #### 自己动手使用electron_app
 
