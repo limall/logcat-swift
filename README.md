@@ -24,9 +24,7 @@ logcat-swift分为打印端和发送端两部分，打印端是一个单独的ap
 
 **打印端接收消息的端口为20131，请务必保证该端口没有被占用。**
 
-#### 使用已打包好了的app
 
-打印端可以直接使用打包好了的app,链接: https://pan.baidu.com/s/1TCFNpMTxGHZ2daTXLspDdA 提取码: a4my
 
 #### 自己动手使用electron_app
 
