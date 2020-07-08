@@ -219,7 +219,13 @@ function getEStr(obj,stress){
     return getHtmlStr(obj,'danger',stress);
 }
 
+function addLineBreak(obj){
+    obj.msg=obj.msg.replace(/\n/g,'<br>');
+}
+
 function getHtmlStr(obj,level,stress){
+    addLineBreak(obj);
+
     let HTML1 = '<tr class="logItem '+level+'">';
     let HTML2 = '</tr>';
     let HTMLA='<td>';

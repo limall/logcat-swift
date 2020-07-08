@@ -179,6 +179,7 @@ public class Logcat{
         }
     }
     
+    
     //set where device send log to and init connection or reset connection
     //logid用来分辨发送设备，当有多个设备发送信息时，记得要将这些设备设置不同的logid
     public static func resetDst(toIp ip:NWEndpoint.Host="127.0.0.1",toPort port:NWEndpoint.Port=20131,logId:UInt32){
@@ -198,11 +199,45 @@ public class Logcat{
         }))
     }
     
+    private static func addLineBreak(originMsg:String)->String{
+        let maxCharOneLine=75
+        var oneLine=0
+        var offset=0
+        var breakOffsets=[Int]()
+        var result=originMsg
+        
+        for i in 0..<originMsg.count{
+            if originMsg[originMsg.index(originMsg.startIndex, offsetBy: i)]=="\n"{
+                oneLine=0
+            }else{
+                oneLine += 1
+            }
+            
+            if oneLine==maxCharOneLine{
+                if i != originMsg.count-1{
+                    let next=originMsg[originMsg.index(originMsg.startIndex, offsetBy: i+1)]
+                    if next != "\n"{
+                        breakOffsets.append(offset+i+1)
+                        offset += 1
+                        oneLine=0
+                    }
+                }
+            }
+        }
+        
+        for i in 0..<breakOffsets.count{
+            result.insert("\n", at: result.index(result.startIndex, offsetBy: breakOffsets[i]))
+        }
+        
+        return result
+    }
+    
     //组织一条log信息
     private static func proccessMsg(msg:String,level:String,tag:String,filePath:String,function:String,line:Int)->String{
+        let breakedMsg=addLineBreak(originMsg: msg)
         let t=time(nil)
         let place="\(getFileName(filePath: filePath)):\(getFuncName(funcId: function)):\(line)"
-        let msgStr=makeJsonStr(msg: msg, tag: tag, level: level, time: UInt(t),place:place)
+        let msgStr=makeJsonStr(msg: breakedMsg, tag: tag, level: level, time: UInt(t),place:place)
         return msgStr
     }
     
